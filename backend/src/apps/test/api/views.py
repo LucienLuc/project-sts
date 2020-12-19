@@ -23,4 +23,6 @@ class TestViewSet(viewsets.ModelViewSet):
     #     return Response(status= 200)
 
     def create(self, request, *args, **kwargs):
-        return Response(status= 400)
+        print(request.data)
+        obj = Test.objects.create(number = request.data['number'])
+        return Response(status= 200)

@@ -31,6 +31,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     'localhost',
+    '127.0.0.1',
     'project-sts-backend.herokuapp.com'
 ]
 
@@ -46,11 +47,15 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     
     'rest_framework',
+    'corsheaders',
 
     'src.apps.test'
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -62,9 +67,11 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware'
 ]
 
-# MIDDLEWARE_CLASSES = [
-#     'whitenoise.middleware.WhiteNoiseMiddleware',
-# ]
+CORS_ALLOWED_ORIGINS = [
+    'http://127.0.0.1:3000',
+    'http://localhost:3000',
+    'https://project-sts.herokuapp.com'
+]
 
 ROOT_URLCONF = 'src.urls'
 
