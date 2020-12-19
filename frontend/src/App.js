@@ -7,8 +7,8 @@ import { withRouter } from 'react-router-dom';
 import axios from 'axios'
 import {Button} from 'antd'
 
-//const BASE_URL = 'https://project-sts-backend.herokuapp.com'
-const BASE_URL = 'http://127.0.0.1:8000'
+const BASE_URL = 'https://project-sts-backend.herokuapp.com'
+//const BASE_URL = 'http://127.0.0.1:8000'
 
 function App(props) {
 
