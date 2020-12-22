@@ -18,6 +18,7 @@ class Game(models.Model):
     gamestate = models.CharField(max_length = 7, choices = GAMESTATE)
     curr_health = models.IntegerField()
     max_health = models.IntegerField()
+    max_mana = models.IntegerField()
     gold = models.IntegerField()
     # array of card
     deck = []

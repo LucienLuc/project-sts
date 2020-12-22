@@ -20,5 +20,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('test/' , include('src.apps.test.api.urls')),
     path('game/' , include('src.apps.game.api.urls')),
-    path('auth/', include('src.apps.myauth.api.urls'))
+    path('auth/', include('src.apps.myauth.api.urls')),
+    path('enemy/', include('src.apps.enemy.api.urls')),
+    path('battle/', include('src.apps.battle.api.urls'))
+
 ]

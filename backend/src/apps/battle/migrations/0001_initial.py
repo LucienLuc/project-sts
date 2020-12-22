@@ -9,18 +9,18 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('battle', '0001_initial'),
+        ('game', '0001_initial'),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Enemy',
+            name='Battle',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('max_health', models.IntegerField()),
+                ('phase', models.IntegerField(default=1)),
                 ('curr_health', models.IntegerField()),
-                ('enemy_type', models.CharField(choices=[('rat', 'rat'), ('slime', 'slime')], max_length=7)),
-                ('battle', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='battle.battle')),
+                ('max_health', models.IntegerField()),
+                ('game', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='game.game')),
             ],
         ),
     ]

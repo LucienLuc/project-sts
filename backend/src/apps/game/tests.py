@@ -5,7 +5,6 @@ from .main.models import Game
 
 class GameTests(TestCase):
     token = ''
-    # config = {}
     user_id = -1
 
     def setUp(self):
@@ -20,11 +19,6 @@ class GameTests(TestCase):
         self.assertEqual(response2.status_code, 200)
 
         self.token = response2.data['access']
-        # self.config = {
-        #     'headers': {
-        #         'Authorization': 'JWT ' + response2.data['access']
-        #     }
-        # }
 
         response3 = self.client.post('/auth/jwt/verify/', {'token' : self.token})
         self.assertEqual(response3.status_code, 200)

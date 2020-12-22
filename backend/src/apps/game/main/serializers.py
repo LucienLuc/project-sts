@@ -3,7 +3,7 @@ from django.db import models
 from .models import Game
 
 class GameSerializer(serializers.ModelSerializer):
-    health = serializers.IntegerField(max_value = None, min_value = None)
+    id = serializers.IntegerField()
     class Meta:
         model = Game
-        fields = '__all__'
+        fields = ['id']

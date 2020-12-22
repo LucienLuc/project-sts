@@ -18,8 +18,11 @@ from src.apps.myauth.main.serializers import UserSerializer
 
 from django.shortcuts import get_object_or_404
 
-from ....card.cards import *
-from ....card.card import Card
+# from ....card.cards import *
+# from ....card.card import Card
+
+from src.card.cards import *
+from src.card.card import Card
 
 from types import MappingProxyType
 import json
@@ -77,7 +80,14 @@ class GameViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             user = get_object_or_404(User, id = serializer.validated_data['id'])
             #Link user to Game object - every game MUST have a user
-            game = Game.objects.create(max_health = 100, curr_health = 100, gamestate = 'map', gold = 0, user = user, id = user.id)
+            game = Game.objects.create(
+            max_health = 100, 
+            curr_health = 100,
+            max_mana = 3,
+            gamestate = 'map', 
+            gold = 0, 
+            user = user, 
+            id = user.id)
             return Response(status=200)
         return Response(status=400)
 

@@ -3,7 +3,11 @@ from django.db import models
 from .models import Enemy
 
 class EnemySerializer(serializers.ModelSerializer):
-    number = serializers.IntegerField(max_value = None, min_value = None)
+    ENEMYTYPE = (
+        ('rat','rat'),
+        ('slime', 'slime'),
+    )
+    enemy_type = models.CharField(max_length = 7, choices = ENEMYTYPE)
     class Meta:
         model = Enemy
-        fields = '__all__'
+        fields = 'enemy_type'
