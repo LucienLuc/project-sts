@@ -28,20 +28,18 @@ from types import MappingProxyType
 import json
 class CardEncoder(json.JSONEncoder):
     def default(self, obj):
-        if isinstance(obj, MappingProxyType):
+        # if isinstance(obj, MappingProxyType):
+        if True:
             return {
-                "name": obj['name'],
-                "description": obj['description'],
-                "mana": obj['mana']
+                "name": obj.name,
+                "description": obj.description,
+                "mana": obj.mana
             }
         return json.JSONEncoder.default(self, obj)
 
 class GameViewSet(viewsets.ModelViewSet):
     queryset = Game.objects.all()
     serializer_class = GameSerializer
-    # @action(detail=True, methods=['post', 'get'])
-    # def foo(self, request, pk):
-    #     return Response(status= 200)
 
     @action(detail=True, methods=['post'])
     def add_card_to_deck(self, request, pk):
@@ -52,7 +50,9 @@ class GameViewSet(viewsets.ModelViewSet):
         except:
             return Response(status=404)
         game = self.get_object()
-        game.deck.append(card)
+        card_json = json.dumps(card, cls = CardEncoder)
+        game.deck.append(card_json)
+        game.save()
         return Response(status=200)
 
     @action(detail=True, methods=['post'])
@@ -64,16 +64,18 @@ class GameViewSet(viewsets.ModelViewSet):
         except:
             return Response(status=404)
         game = self.get_object()
-        game.deck.remove(card)
+        card_json = json.dumps(card, cls = CardEncoder)
+        try:
+            game.deck.remove(card_json)
+        except:
+            return Response(status=404)
+        game.save()
         return Response(status=200)    
 
     @action(detail=True, methods=['get'])
     def get_deck(self, request, pk):
         game = self.get_object()
-        deck = []
-        for i in range(len(game.deck)):
-            deck.append(json.dumps(game.deck[i].__dict__, cls=CardEncoder))
-        return Response(data=deck, status=200) 
+        return Response(data = game.deck, status=200) 
 
     def create(self, request, *args, **kwargs):
         serializer = UserSerializer(data=request.data)
@@ -85,7 +87,8 @@ class GameViewSet(viewsets.ModelViewSet):
             curr_health = 100,
             max_mana = 3,
             gamestate = 'map', 
-            gold = 0, 
+            gold = 0,
+            # deck = list, 
             user = user, 
             id = user.id)
             return Response(status=200)

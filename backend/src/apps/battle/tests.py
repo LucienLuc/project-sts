@@ -35,7 +35,7 @@ class BattleTests(TestCase):
         self.assertEqual(response1.status_code, 201)
 
     def test_play_card(self):
-        #Add strike card to deck
+        # Add strike card to deck
         response1 = self.client.post('/game/' + str(self.user_id) + '/add_card_to_deck/', {'card_name': 'Strike'}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
         self.assertEqual(response1.status_code, 200)
 

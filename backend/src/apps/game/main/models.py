@@ -21,7 +21,7 @@ class Game(models.Model):
     max_mana = models.IntegerField()
     gold = models.IntegerField()
     # array of card
-    deck = []
+    deck = models.JSONField(default = list)
     #array of relic
     relic = []
 

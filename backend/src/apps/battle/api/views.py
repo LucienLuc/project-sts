@@ -28,7 +28,7 @@ class BattleViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def play_card(self, request, pk):
         battle = self.get_object()
-        print(battle.deck)
+        # print(battle.deck)
         return Response(status=200)
 
     @action(detail=True, methods=['post'])
@@ -52,7 +52,7 @@ class BattleViewSet(viewsets.ModelViewSet):
                 id = game.id
             )
             #does this copy or reference the same deck in memory?
-            print(game.deck)
+            # print(game.deck)
             obj.deck.append(game.deck)
             # print(obj.deck)
             return Response(status=201)

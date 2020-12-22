@@ -24,11 +24,13 @@ class EnemyViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def next_move(self, request, pk):
         enemy = self.get_object()
-
+        #TODO
+        # make deck an array of chars with each element as card's name
+        # store into db
         enemy_module = globals()[enemy.enemy_type]
         enemy = getattr(enemy_module, 'Slime')
 
-        print(enemy.name)
+        # print(enemy.name)
 
         return Response(status=200)
 
