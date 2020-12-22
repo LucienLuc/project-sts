@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 import dotenv
 import os
+from datetime import timedelta
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -47,10 +48,15 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     
     'rest_framework',
+    'djoser',
     'corsheaders',
 
-    'src.apps.test'
+    'src.apps.test',
+    'src.apps.myauth',
+    'src.apps.game',
 ]
+
+# AUTH_USER_MODEL = 'myauth.User'
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -93,6 +99,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'src.wsgi.application'
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
@@ -144,4 +155,10 @@ USE_TZ = True
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATIC_URL = '/static/'
 
-# STATICFILES_DIRS = [os.path.join(BASE_DIR, 'staticfiles'), ]
+
+#Simple JWT 
+SIMPLE_JWT = {
+   'AUTH_HEADER_TYPES': ('JWT',),
+   'USER_ID_FIELD': 'id',
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30)
+}

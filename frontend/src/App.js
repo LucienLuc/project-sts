@@ -4,11 +4,12 @@ import './App.css';
 import {Route, Switch} from 'react-router-dom'
 import { withRouter } from 'react-router-dom';
 
+import 'antd/dist/antd.css';
 import axios from 'axios'
 import {Button} from 'antd'
 
-const BASE_URL = 'https://project-sts-backend.herokuapp.com'
-//const BASE_URL = 'http://127.0.0.1:8000'
+//const BASE_URL = 'https://project-sts-backend.herokuapp.com'
+const BASE_URL = 'http://127.0.0.1:8000'
 
 function App(props) {
 
@@ -16,7 +17,7 @@ function App(props) {
     const input = {
       number: '2'
     }
-    axios.post(BASE_URL + '/test/', input).then(response =>{
+    axios.post(BASE_URL + '/game/', input).then(response =>{
       console.log(response)
     })
   }
