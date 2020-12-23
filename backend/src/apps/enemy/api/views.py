@@ -35,17 +35,17 @@ class EnemyViewSet(viewsets.ModelViewSet):
         return Response(status=200)
 
     def create(self, request, *args, **kwargs):
-        try:
-            enemy_name = request.data['enemy_type']
-            enemy_module = globals()[enemy_name.lower()]
-            enemy = getattr(enemy_module, enemy_name)
-        except:
-            return Response(status=404)
-        move = enemy.get_next_move(self)
+        # try:
+        #     enemy_name = request.data['enemy_type']
+        #     enemy_module = globals()[enemy_name.lower()]
+        #     enemy = getattr(enemy_module, enemy_name)
+        # except:
+        #     return Response(status=404)
+        # move = enemy.get_next_move(self)
         # obj = Enemy.objects.create(
         #         max_health = enemy.max_health, 
         #         curr_health = enemy.max_health, 
-        #         enemy_type = enemy.name.lower(),
+        #         enemy_name= enemy.name.lower(),
         #         )
         # obj.next_move = move
         return Response(status=202)

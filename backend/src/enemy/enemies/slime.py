@@ -9,6 +9,14 @@ class Slime(Enemy):
     def get_next_move(self):
         value = random.randint(0,2)
         if value == 0:
-            return Move('block', 1, 6)
+            return {
+                'type': 'block',
+                'count': 1,
+                'value': 6
+            }
         else:
-            return Move('attack', 1, 7)
+            return {
+                'type': 'attack',
+                'count': 1,
+                'value': 7
+            }

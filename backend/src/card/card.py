@@ -1,5 +1,6 @@
 import abc
 from abc import ABC, abstractmethod
+import json
 
 class Card(ABC):
     #str
@@ -23,3 +24,14 @@ class Card(ABC):
     @abstractmethod
     def on_play(self):
         raise NotImplementedError
+
+class CardEncoder(json.JSONEncoder):
+    def default(self, obj):
+        try:
+            return {
+                "name": obj.name,
+                "description": obj.description,
+                "mana": obj.mana
+                }
+        except:
+            return json.JSONEncoder.default(self, obj)

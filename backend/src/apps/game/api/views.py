@@ -22,20 +22,9 @@ from django.shortcuts import get_object_or_404
 # from ....card.card import Card
 
 from src.card.cards import *
-from src.card.card import Card
+from src.card.card import Card, CardEncoder
 
-from types import MappingProxyType
 import json
-class CardEncoder(json.JSONEncoder):
-    def default(self, obj):
-        # if isinstance(obj, MappingProxyType):
-        if True:
-            return {
-                "name": obj.name,
-                "description": obj.description,
-                "mana": obj.mana
-            }
-        return json.JSONEncoder.default(self, obj)
 
 class GameViewSet(viewsets.ModelViewSet):
     queryset = Game.objects.all()
