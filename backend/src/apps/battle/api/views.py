@@ -62,10 +62,6 @@ class BattleViewSet(viewsets.ModelViewSet):
     queryset = Battle.objects.all()
     serializer_class = BattleSerializer
 
-    # @action(detail=True, methods=['post', 'get'])
-    # def foo(self, request, pk):
-    #     return Response(status= 200)
-
     @action(detail=True, methods=['post'])
     def play_card(self, request, pk):
         battle = self.get_object()
@@ -78,7 +74,7 @@ class BattleViewSet(viewsets.ModelViewSet):
                 
             #Get card class
             try:
-                card_name = serializer.validated_data['card_name']
+                card_name = serializer.validated_data['card_name'].replace(' ', '')
                 card_module = globals()[card_name.lower()]
                 card = getattr(card_module, card_name)
             except:
@@ -177,7 +173,7 @@ class BattleViewSet(viewsets.ModelViewSet):
                     enemy.status_effects.pop('regen')
                 else:
                     enemy.status_effects['regen'] = regen_value - 1
-                enemy.curr_health = F('curr_health') + regen_value
+                enemy.curr_health += regen_value
                 if(enemy.curr_health > enemy.max_health):
                     enemy.curr_health = enemy.max_health
             except(KeyError):
@@ -188,7 +184,8 @@ class BattleViewSet(viewsets.ModelViewSet):
                     enemy.status_effects.pop('bleed')
                 else:
                     enemy.status_effects['bleed'] = enemy.status_effects['bleed'] - 1
-                enemy.curr_health = F('curr_health') - bleed_value
+                enemy.curr_health -= bleed_value
+                enemy.save()
             except(KeyError):
                 pass
             
@@ -209,6 +206,7 @@ class BattleViewSet(viewsets.ModelViewSet):
                     enemy.status_effects['weak'] = value - 1
             except(KeyError):
                 pass
+                
             #check deaths
             if enemy.curr_health <= 0:
                 enemy.delete()
@@ -229,7 +227,7 @@ class BattleViewSet(viewsets.ModelViewSet):
                 battle.status_effects.pop('regen')
             else:
                 battle.status_effects['regen'] = regen_value - 1
-            battle.curr_health = F('curr_health') + regen_value
+            battle.curr_health += regen_value
             if(battle.curr_health > battle.max_health):
                 battle.curr_health = battle.max_health
         except(KeyError):
@@ -240,7 +238,7 @@ class BattleViewSet(viewsets.ModelViewSet):
                 battle.status_effects.pop('bleed')
             else:
                 battle.status_effects['bleed'] = battle.status_effects['bleed'] - 1
-            enemy.curr_health = F('curr_health') - bleed_value
+            enemy.curr_health -= bleed_value
         except(KeyError):
             pass
         
@@ -266,7 +264,7 @@ class BattleViewSet(viewsets.ModelViewSet):
 
         # get next hand
         draw_cards(battle.hand, battle.deck, battle.discard, 5)
-
+        battle.phase += 1
         battle.save()
         return Response(status=200)
 

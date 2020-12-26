@@ -244,4 +244,29 @@ class BattleTests(TestCase):
         response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
         # print(response_state.data)
         enemy = json.loads(response_state.data['enemies'][0])
-        self.assertEqual(enemy['curr_health'], 7)
+        self.assertEqual(enemy['curr_health'], enemy['max_health'] - 13)
+    
+    def test_bleed_damage(self):
+        response1 = self.client.post('/game/' + str(self.user_id) + '/add_card_to_deck/', {'card_name': 'Deep Cut'}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        self.assertEqual(response1.status_code, 200)
+
+        response2 = self.client.post('/battle/', {'id': self.user_id}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        self.assertEqual(response2.status_code, 201)
+
+        # response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        # print(response_state.data)
+
+        response3 = self.client.post('/battle/' + str(self.user_id) + '/play_card/', {'id': self.user_id, 'card_name': 'Deep Cut', 'target': 1}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        self.assertEqual(response1.status_code, 200)
+
+        response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        enemy = json.loads(response_state.data['enemies'][0])
+        self.assertEqual(enemy['status_effects'].get('bleed'),2)
+
+        response3 = self.client.post('/battle/' + str(self.user_id) + '/end_turn/', {'id': self.user_id}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        
+        response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        
+        enemy = json.loads(response_state.data['enemies'][0])
+        self.assertEqual(enemy['status_effects'].get('bleed'), 1)
+        self.assertEqual(enemy['curr_health'], enemy['max_health'] - 4 - 2)

@@ -33,7 +33,7 @@ class GameViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def add_card_to_deck(self, request, pk):
         try:
-            card_name = request.data['card_name']
+            card_name = request.data['card_name'].replace(' ', '')
             card_module = globals()[card_name.lower()]
             card = getattr(card_module, card_name)
         except:
@@ -47,7 +47,7 @@ class GameViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def remove_card_from_deck(self, request, pk):
         try:
-            card_name = request.data['card_name']
+            card_name = request.data['card_name'].replace(' ', '')
             card_module = globals()[card_name.lower()]
             card = getattr(card_module, card_name)
         except:
