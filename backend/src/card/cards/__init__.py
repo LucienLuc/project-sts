@@ -1,1 +1,1 @@
-__all__ = ['strike', 'block']
+__all__ = ['strike', 'block', 'shatter']

@@ -6,5 +6,6 @@ class Block(Card):
     mana = 1
 
     def on_play(self, data):
-        data['battle_state']['block'] = data['battle_state']['block']+6
+        new_block = Card.block_modifier(self, 6, data['battle_state']['status_effects'])
+        data['battle_state']['block'] = data['battle_state']['block']+ new_block
 

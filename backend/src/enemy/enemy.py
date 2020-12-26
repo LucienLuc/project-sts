@@ -27,6 +27,7 @@ class EnemyEncoder(json.JSONEncoder):
                 'max_health': obj.max_health,
                 'curr_health': obj.curr_health,
                 'block': obj.block,
+                'status_effects': obj.status_effects,
                 'field_position': obj.field_position,
                 'next_move': obj.next_move
                 }

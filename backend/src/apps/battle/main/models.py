@@ -9,6 +9,7 @@ class Battle(models.Model):
     curr_mana = models.IntegerField()
     max_mana = models.IntegerField()
     block = models.IntegerField()
+    status_effects = models.JSONField(default = dict)
     game = models.OneToOneField(Game, on_delete = models.CASCADE)
 
     # enemies foreign key field

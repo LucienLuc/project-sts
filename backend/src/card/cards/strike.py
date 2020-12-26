@@ -11,5 +11,7 @@ class Strike(Card):
         #Do damage to target
         target = data['action']['target']
         enemy_json = json.loads(data['battle_state']['enemies'][target-1])
-        enemy_json['curr_health'] = enemy_json['curr_health']-6
+
+        new_attack = Card.attack_modifier(self, 6, data['battle_state']['status_effects'], enemy_json['status_effects'])
+        enemy_json['curr_health'] = enemy_json['curr_health']-new_attack
         data['battle_state']['enemies'][target-1] = enemy_json

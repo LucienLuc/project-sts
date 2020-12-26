@@ -110,6 +110,7 @@ class BattleViewSet(viewsets.ModelViewSet):
                     'curr_mana': battle.curr_mana,
                     'max_mana': battle.max_mana,
                     'block': battle.block,
+                    'status_effects': battle.status_effects,
                     'deck': battle.deck,
                     'hand': battle.hand,
                     'discard': battle.discard,
@@ -125,6 +126,7 @@ class BattleViewSet(viewsets.ModelViewSet):
 
             # Update all fields
             battle.curr_health = data['battle_state']['curr_health']
+            battle.status_effects = data['battle_state']['status_effects']
 
             # how does this handle multiple targets?
             enemy_target = battle.enemy_set.get(field_position__exact = target)
@@ -132,6 +134,7 @@ class BattleViewSet(viewsets.ModelViewSet):
                 enemy_target.delete()
             else:
                 enemy_target.curr_health = data['battle_state']['enemies'][target-1]['curr_health']
+                enemy_target.status_effects = data['battle_state']['enemies'][target-1]['status_effects']
                 enemy_target.save()
             
             # print(battle.enemy_set.all()[1].curr_health)
@@ -146,6 +149,8 @@ class BattleViewSet(viewsets.ModelViewSet):
         # put all hand into discard
         battle.discard.extend(battle.hand)
         battle.hand.clear()
+
+        #end of turn status_effects
 
         # do all enemy's moves
         for enemy in battle.enemy_set.all():
@@ -165,22 +170,101 @@ class BattleViewSet(viewsets.ModelViewSet):
             else:
                 return Response(status = 409)
 
-            #get new enemies moves
-            # print(enemy.name)
-            enemy_module = globals()[enemy.name.lower()]
-            # capitlaize because class name is capital first letter
-            enemy_class = getattr(enemy_module, enemy.name.capitalize())
-            next_move = enemy_class.get_next_move(self)
-            enemy.next_move = next_move
-            enemy.save()
-            battle.save()
+            #end of turn status effects (regen, bleed)
+            try:
+                regen_value = enemy.status_effects['regen']
+                if regen_value == 1:
+                    enemy.status_effects.pop('regen')
+                else:
+                    enemy.status_effects['regen'] = regen_value - 1
+                enemy.curr_health = F('curr_health') + regen_value
+                if(enemy.curr_health > enemy.max_health):
+                    enemy.curr_health = enemy.max_health
+            except(KeyError):
+                pass
+            try:
+                bleed_value = enemy.status_effects['bleed']
+                if bleed_value == 1:
+                    enemy.status_effects.pop('bleed')
+                else:
+                    enemy.status_effects['bleed'] = enemy.status_effects['bleed'] - 1
+                enemy.curr_health = F('curr_health') - bleed_value
+            except(KeyError):
+                pass
+            
+            #deplete duration status effects (vulnerable, weak)
+            try:
+                value = enemy.status_effects['vulnerable']
+                if value == 1:
+                    enemy.status_effects.pop('vulnerable')
+                else:
+                    enemy.status_effects['vulnerable'] = value - 1
+            except(KeyError):
+                pass
+            try:
+                value = enemy.status_effects['weak']
+                if value == 1:
+                    enemy.status_effects.pop('weak')
+                else:
+                    enemy.status_effects['weak'] = value - 1
+            except(KeyError):
+                pass
+            #check deaths
+            if enemy.curr_health <= 0:
+                enemy.delete()
+            else:
+                #get new enemies moves
+                # print(enemy.name)
+                enemy_module = globals()[enemy.name.lower()]
+                # capitlaize because class name is capital first letter
+                enemy_class = getattr(enemy_module, enemy.name.capitalize())
+                next_move = enemy_class.get_next_move(self)
+                enemy.next_move = next_move
+                enemy.save()
+            
+        # Player status effects
+        try:
+            regen_value = battle.status_effects['regen']
+            if regen_value == 1:
+                battle.status_effects.pop('regen')
+            else:
+                battle.status_effects['regen'] = regen_value - 1
+            battle.curr_health = F('curr_health') + regen_value
+            if(battle.curr_health > battle.max_health):
+                battle.curr_health = battle.max_health
+        except(KeyError):
+            pass
+        try:
+            bleed_value = battle.status_effects['bleed']
+            if bleed_value == 1:
+                battle.status_effects.pop('bleed')
+            else:
+                battle.status_effects['bleed'] = battle.status_effects['bleed'] - 1
+            enemy.curr_health = F('curr_health') - bleed_value
+        except(KeyError):
+            pass
+        
+        try:
+            value = battle.status_effects['vulnerable']
+            if value == 1:
+                battle.status_effects.pop('vulnerable')
+            else:
+                battle.status_effects['vulnerable'] = value - 1
+        except(KeyError):
+            pass
+
+        try:
+            value = battle.status_effects['weak']
+            if value == 1:
+                battle.status_effects.pop('weak')
+            else:
+                battle.status_effects['weak'] = value - 1
+        except(KeyError):
+            pass
 
         battle.currmana = battle.max_mana
 
         # get next hand
-        # print(battle.hand)
-        # print(battle.deck)
-        # print(battle.discard)
         draw_cards(battle.hand, battle.deck, battle.discard, 5)
 
         battle.save()
@@ -197,6 +281,7 @@ class BattleViewSet(viewsets.ModelViewSet):
                 'max_health': battle.max_health,
                 'curr_mana': battle.curr_mana,
                 'max_mana': battle.max_mana,
+                'status_effects': battle.status_effects,
                 'block': battle.block,
                 'deck': battle.deck,
                 'hand': battle.hand,

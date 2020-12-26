@@ -7,6 +7,7 @@ class Enemy(models.Model):
     max_health = models.IntegerField()
     curr_health = models.IntegerField()
     block = models.IntegerField()
+    status_effects = models.JSONField(default = dict)
     ENEMYNAME = (
         ('rat','Rat'),
         ('slime', 'Slime'),

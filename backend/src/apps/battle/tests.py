@@ -197,3 +197,51 @@ class BattleTests(TestCase):
         # print(response_state.data)
 
         self.assertEqual(response_state.data['max_health']-damage_to_be_taken, response_state.data['curr_health'])
+    
+    def test_inflict_vulnerable(self):
+        #Add cards to deck 
+        response1 = self.client.post('/game/' + str(self.user_id) + '/add_card_to_deck/', {'card_name': 'Shatter'}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        self.assertEqual(response1.status_code, 200)
+
+        #create battle
+        response2 = self.client.post('/battle/', {'id': self.user_id}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        self.assertEqual(response2.status_code, 201)
+
+        response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        # print(response_state.data)
+
+        response3 = self.client.post('/battle/' + str(self.user_id) + '/play_card/', {'id': self.user_id, 'card_name': 'Shatter', 'target': 1}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        self.assertEqual(response3.status_code, 200)
+
+        response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        enemy = json.loads(response_state.data['enemies'][0])
+        self.assertEqual(enemy['status_effects'].get('vulnerable'),2)
+    
+    def test_vulnerable_damage(self):
+        #Add cards to deck 
+        response1 = self.client.post('/game/' + str(self.user_id) + '/add_card_to_deck/', {'card_name': 'Shatter'}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        self.client.post('/game/' + str(self.user_id) + '/add_card_to_deck/', {'card_name': 'Strike'}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        self.assertEqual(response1.status_code, 200)
+
+        #create battle
+        response2 = self.client.post('/battle/', {'id': self.user_id}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        self.assertEqual(response2.status_code, 201)
+
+        response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        # print(response_state.data)
+
+        response3 = self.client.post('/battle/' + str(self.user_id) + '/play_card/', {'id': self.user_id, 'card_name': 'Shatter', 'target': 1}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        self.assertEqual(response3.status_code, 200)
+
+        response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        # print(response_state.data)
+        # enemy = json.loads(response_state.data['enemies'][0])
+        # self.assertEqual(enemy['status_effects'].get('vulnerable'),2)
+
+        response4 = self.client.post('/battle/' + str(self.user_id) + '/play_card/', {'id': self.user_id, 'card_name': 'Strike', 'target': 1}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        self.assertEqual(response3.status_code, 200)
+
+        response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        # print(response_state.data)
+        enemy = json.loads(response_state.data['enemies'][0])
+        self.assertEqual(enemy['curr_health'], 7)
