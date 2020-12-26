@@ -11,17 +11,19 @@ from rest_framework.permissions import IsAuthenticated
 from django.db.models import F
 from rest_framework.response import Response
 from src.apps.battle.main.models import Battle
-from src.apps.battle.main.serializers import BattleSerializer
+from src.apps.battle.main.serializers import BattleSerializer, PlayCardSerializer
 from src.apps.game.main.models import Game
 from src.apps.game.main.serializers import GameSerializer
 from src.apps.enemy.main.models import Enemy
 from src.apps.enemy.main.serializers import EnemySerializer
+
 
 from src.card.cards import *
 from src.card.card import Card, CardEncoder
 from src.enemy.enemy import Enemy as ClassEnemy
 from src.enemy.enemy import EnemyEncoder
 from src.enemy.enemies import *
+from src.enemy.move import MoveEncoder
 
 from django.shortcuts import get_object_or_404
 import json
@@ -43,9 +45,10 @@ def draw_cards(hand, deck, discard, amount):
         try:
             hand.append(deck[0])
             deck.pop(0)
-        # Ran out of cards in deck, put all cards from discard into deck and continue drawing cards
+        # Ran out of cards in deck, put all cards from discard into deck, shuffle deck, and continue drawing cards
         except(IndexError):
             deck = discard
+            random.shuffle(deck)
             discard = []
             # if run out of cards to draw after putting discard, stop drawing cards
             try:
@@ -66,83 +69,121 @@ class BattleViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def play_card(self, request, pk):
         battle = self.get_object()
-        # check if target is a valid int
-        try:
-            target = int(request.data['target'])
-        except:
-            return Response(status=404)
-        
-        # check if target is a valid target
-        if(len(battle.enemy_set.all()) < target):
-            return Response(status=404)
+        serializer = PlayCardSerializer(data = request.data)
+        if serializer.is_valid():
+            target = serializer.validated_data['target']
+            # check if target is a valid target
+            if(len(battle.enemy_set.all()) < target):
+                return Response(status=404)
+                
+            #Get card class
+            try:
+                card_name = serializer.validated_data['card_name']
+                card_module = globals()[card_name.lower()]
+                card = getattr(card_module, card_name)
+            except:
+                return Response(status=404)
 
-        #Get card class
-        try:
-            card_name = request.data['card_name']
-            card_module = globals()[card_name.lower()]
-            card = getattr(card_module, card_name)
-        except:
-            return Response(status=404)
+            # check if enough curr_mana
+            if battle.curr_mana < card.mana:
+                return Response(status=409)
+            battle.curr_mana = battle.curr_mana - card.mana
 
-        # check if enough curr_mana
-        if battle.curr_mana < card.mana:
-            return Response(status=409)
-        battle.curr_mana = battle.curr_mana - card.mana
+            #verify card is in battle.hand by trying to remove from battle.hand and add to discard
+            try:
+                card_json = json.dumps(card, cls=CardEncoder)
+                battle.hand.remove(card_json)
+                battle.discard.append(card_json)
+            except:
+                return Response(status=404)
 
-        #verify card is in battle.hand by trying to remove from battle.hand and add to discard
-        try:
-            card_json = json.dumps(card, cls=CardEncoder)
-            battle.hand.remove(card_json)
-            battle.discard.append(card_json)
-        except:
-            return Response(status=404)
+            # Prepare data to send to card on_play() method
+            enemies = battle.enemy_set.all()
+            enemy_list = []
+            for enemy in battle.enemy_set.all():
+                enemy_list.append(json.dumps(enemy, cls=EnemyEncoder))
 
-        # Prepare data to send to card on_play() method
-        enemies = battle.enemy_set.all()
-        enemy_list = []
-        for enemy in battle.enemy_set.all():
-            enemy_list.append(json.dumps(enemy, cls=EnemyEncoder))
-
-        data = {
-            'battle_state' : {
-                'curr_health': battle.curr_health,
-                'max_health': battle.max_health,
-                'curr_mana': battle.curr_mana,
-                'max_mana': battle.max_mana,
-                'deck': battle.deck,
-                'hand': battle.hand,
-                'discard': battle.discard,
-                'enemies': enemy_list
-            },
-            'action' : {
-                'target': int(request.data['target']),
-                'card': request.data['card_name']
+            data = {
+                'battle_state' : {
+                    'curr_health': battle.curr_health,
+                    'max_health': battle.max_health,
+                    'curr_mana': battle.curr_mana,
+                    'max_mana': battle.max_mana,
+                    'block': battle.block,
+                    'deck': battle.deck,
+                    'hand': battle.hand,
+                    'discard': battle.discard,
+                    'enemies': enemy_list
+                },
+                'action' : {
+                    'target': serializer.validated_data['target'],
+                    'card': serializer.validated_data['card_name']
+                }
             }
-        }
-        card.on_play(self, data)
-        # print(data['battle_state']['enemies'][target-1])
+            card.on_play(self, data)
+            # print(data['battle_state']['enemies'][target-1])
 
-        # Update all fields
-        battle.curr_health = data['battle_state']['curr_health']
+            # Update all fields
+            battle.curr_health = data['battle_state']['curr_health']
 
-        # how does this handle multiple targets?
-        enemy_target = battle.enemy_set.get(field_position__exact = target)
-        if (data['battle_state']['enemies'][target-1]['curr_health'] <= 0):
-            enemy_target.delete()
-        else:
-            enemy_target.curr_health = data['battle_state']['enemies'][target-1]['curr_health']
-            enemy_target.save()
-        
-        # print(battle.enemy_set.all()[1].curr_health)
-        battle.save()
-        return Response(status=200)
+            # how does this handle multiple targets?
+            enemy_target = battle.enemy_set.get(field_position__exact = target)
+            if (data['battle_state']['enemies'][target-1]['curr_health'] <= 0):
+                enemy_target.delete()
+            else:
+                enemy_target.curr_health = data['battle_state']['enemies'][target-1]['curr_health']
+                enemy_target.save()
+            
+            # print(battle.enemy_set.all()[1].curr_health)
+            battle.save()
+            return Response(status=200)
+        return Response(status=400)
 
     @action(detail=True, methods=['post'])
     def end_turn(self, request, pk):
+        battle = self.get_object()
+
+        # put all hand into discard
+        battle.discard.extend(battle.hand)
+        battle.hand.clear()
+
         # do all enemy's moves
-        # set curr_mana = max_mana
-        # put all hand into graveyard
+        for enemy in battle.enemy_set.all():
+            move_type = enemy.next_move['type']
+            # move = json.dumps(enemy['next_move'], cls = MoveEncoder)
+            if (move_type == 'attack'):
+                #Support for hit amount debuffs/buffs/relic interactions
+                for i in range(enemy.next_move['count']):
+                    player_block = battle.block - enemy.next_move['value']
+                    if (player_block < 0):
+                        battle.curr_health = battle.curr_health + player_block
+                        battle.block = 0
+                    else:
+                        battle.block = player_block
+            elif(move_type == 'block'):
+                enemy.block = F('block') + enemy.next_move['value']
+            else:
+                return Response(status = 409)
+
+            #get new enemies moves
+            # print(enemy.name)
+            enemy_module = globals()[enemy.name.lower()]
+            # capitlaize because class name is capital first letter
+            enemy_class = getattr(enemy_module, enemy.name.capitalize())
+            next_move = enemy_class.get_next_move(self)
+            enemy.next_move = next_move
+            enemy.save()
+            battle.save()
+
+        battle.currmana = battle.max_mana
+
         # get next hand
+        # print(battle.hand)
+        # print(battle.deck)
+        # print(battle.discard)
+        draw_cards(battle.hand, battle.deck, battle.discard, 5)
+
+        battle.save()
         return Response(status=200)
 
     @action(detail=True, methods=['get'])
@@ -156,6 +197,7 @@ class BattleViewSet(viewsets.ModelViewSet):
                 'max_health': battle.max_health,
                 'curr_mana': battle.curr_mana,
                 'max_mana': battle.max_mana,
+                'block': battle.block,
                 'deck': battle.deck,
                 'hand': battle.hand,
                 'discard': battle.discard,
@@ -172,6 +214,7 @@ class BattleViewSet(viewsets.ModelViewSet):
                 max_health = game.max_health,
                 curr_mana = game.max_mana,
                 max_mana = game.max_mana,
+                block = 0,
                 game = game,
                 deck = game.deck, # does this make a copy or reference same thing?
                 id = game.id
@@ -191,7 +234,8 @@ class BattleViewSet(viewsets.ModelViewSet):
                 Enemy.objects.create(
                     max_health = enemy.max_health,
                     curr_health = enemy.max_health,
-                    enemy_name = enemy.name,
+                    block = 0,
+                    name = enemy.name,
                     field_position = i,
                     battle = battle,
                     next_move = next_move
@@ -212,6 +256,6 @@ class BattleViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         permission_classes = []
-        if self.action in ['create', 'list', 'retrieve', 'end_turn', 'play_card']:
+        if self.action in ['create', 'list', 'retrieve', 'end_turn', 'play_card','get_state']:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]

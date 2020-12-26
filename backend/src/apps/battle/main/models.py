@@ -8,9 +8,10 @@ class Battle(models.Model):
     max_health = models.IntegerField()
     curr_mana = models.IntegerField()
     max_mana = models.IntegerField()
+    block = models.IntegerField()
     game = models.OneToOneField(Game, on_delete = models.CASCADE)
 
-    # enemies
+    # enemies foreign key field
     hand = models.JSONField(default = list)
     discard = models.JSONField(default = list)
     deck = models.JSONField(default = list)

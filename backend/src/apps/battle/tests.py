@@ -3,6 +3,7 @@ from src.enemy.enemy import Enemy as ClassEnemy
 from src.enemy.enemy import EnemyEncoder
 from src.enemy.enemies import *
 
+from src.enemy.move import MoveEncoder
 import json
 class BattleTests(TestCase):
 
@@ -83,7 +84,7 @@ class BattleTests(TestCase):
         response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
         # print(response_state.data)
         enemy = json.loads(response_state.data['enemies'][0])
-        self.assertEqual(enemy['enemy_name'], 'Slime')
+        self.assertEqual(enemy['name'], 'Slime')
         self.assertEqual(enemy['curr_health'], 2)
 
         #Out of mana fail
@@ -113,3 +114,86 @@ class BattleTests(TestCase):
         response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
         self.assertEqual(len(response_state.data['enemies']), 1)
         # self.assertEqual(response_state.data, assert_state)
+
+    # def test_end_turn_deck_shuffle(self):
+    #     for i in range(5):
+    #         response1 = self.client.post('/game/' + str(self.user_id) + '/add_card_to_deck/', {'card_name': 'Strike'}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+    #         self.assertEqual(response1.status_code, 200)
+
+    #     for i in range(5):
+    #         response1 = self.client.post('/game/' + str(self.user_id) + '/add_card_to_deck/', {'card_name': 'Block'}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+    #         self.assertEqual(response1.status_code, 200)
+        
+
+    #     #create battle
+    #     response2 = self.client.post('/battle/', {'id': self.user_id}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+    #     self.assertEqual(response2.status_code, 201)
+
+    #     response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+    #     print('Deck')
+    #     for card in response_state.data['deck']:
+    #         print(card)
+    #     print('Hand')
+    #     for card in response_state.data['hand']:
+    #         print(card)
+    #     print('Discard')
+    #     for card in response_state.data['discard']:
+    #         print(card)
+        
+    #     response3 = self.client.post('/battle/' + str(self.user_id) + '/end_turn/', {'id': self.user_id}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+    #     self.assertEqual(response3.status_code, 200)
+
+    #     print('After end turn 1')
+    #     response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+    #     print('Deck')
+    #     for card in response_state.data['deck']:
+    #         print(card)
+    #     print('Hand')
+    #     for card in response_state.data['hand']:
+    #         print(card)
+    #     print('Discard')
+    #     for card in response_state.data['discard']:
+    #         print(card)
+        
+    #     response4= self.client.post('/battle/' + str(self.user_id) + '/end_turn/', {'id': self.user_id}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+    #     self.assertEqual(response4.status_code, 200)
+
+    #     print('After end turn 2')
+    #     response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+    #     print('Deck')
+    #     for card in response_state.data['deck']:
+    #         print(card)
+    #     print('Hand')
+    #     for card in response_state.data['hand']:
+    #         print(card)
+    #     print('Discard')
+    #     for card in response_state.data['discard']:
+    #         print(card)
+
+    def test_end_turn_take_damage(self):
+        #Add cards to deck 
+        # response1 = self.client.post('/game/' + str(self.user_id) + '/add_card_to_deck/', {'card_name': 'Strike'}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        # self.assertEqual(response1.status_code, 200)
+
+        #create battle
+        response2 = self.client.post('/battle/', {'id': self.user_id}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        self.assertEqual(response2.status_code, 201)
+
+        response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        # print(response_state.data)
+
+        damage_to_be_taken = 0
+        for enemy in response_state.data['enemies']:
+            enemy_obj = json.loads(enemy)
+            if(enemy_obj['next_move']['type'] == 'attack'):
+                damage_to_be_taken += enemy_obj['next_move']['value'] * enemy_obj['next_move']['count']
+      
+        #end turn
+        response3 = self.client.post('/battle/' + str(self.user_id) + '/end_turn/', {'id': self.user_id}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        self.assertEqual(response3.status_code, 200)
+
+        # print('After end turn')
+        response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        # print(response_state.data)
+
+        self.assertEqual(response_state.data['max_health']-damage_to_be_taken, response_state.data['curr_health'])

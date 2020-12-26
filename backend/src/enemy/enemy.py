@@ -23,9 +23,10 @@ class EnemyEncoder(json.JSONEncoder):
     def default(self, obj):
         try:
             return {
-                'enemy_name': obj.enemy_name,
+                'name': obj.name,
                 'max_health': obj.max_health,
                 'curr_health': obj.curr_health,
+                'block': obj.block,
                 'field_position': obj.field_position,
                 'next_move': obj.next_move
                 }

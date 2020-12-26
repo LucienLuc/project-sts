@@ -22,7 +22,7 @@ class Card(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def on_play(self):
+    def on_play(self, data):
         raise NotImplementedError
 
 class CardEncoder(json.JSONEncoder):

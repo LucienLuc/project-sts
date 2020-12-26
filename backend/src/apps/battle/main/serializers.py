@@ -7,3 +7,12 @@ class BattleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Battle
         fields = ['id']
+
+class PlayCardSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+    card_name = serializers.CharField()
+    target = serializers.IntegerField()
+
+    class Meta:
+        model = Battle
+        fields = ['id', 'card_name', 'target']
