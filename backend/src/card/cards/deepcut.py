@@ -5,7 +5,8 @@ class DeepCut(Card):
     name = 'Deep Cut'
     description = 'Deal 4 damage and inflict 2 Bleed'
     mana = 1
-
+    tags = {}
+    
     def on_play(self, data):
         target = data['action']['target']
         enemy_json = json.loads(data['battle_state']['enemies'][target-1])
@@ -20,4 +21,4 @@ class DeepCut(Card):
              enemy_json['status_effects'].update({'bleed': 2})
 
         data['battle_state']['enemies'][target-1] = enemy_json
-
+        return 0

@@ -79,7 +79,6 @@ class BattleViewSet(viewsets.ModelViewSet):
                 card = getattr(card_module, card_name)
             except:
                 return Response(status=404)
-
             # check if enough curr_mana
             if battle.curr_mana < card.mana:
                 return Response(status=409)
@@ -89,7 +88,11 @@ class BattleViewSet(viewsets.ModelViewSet):
             try:
                 card_json = json.dumps(card, cls=CardEncoder)
                 battle.hand.remove(card_json)
-                battle.discard.append(card_json)
+                # Only add card to discard if card's tag doesn't have exhaust
+                try:
+                    exhaust_value = card.tags['exhaust']
+                except(KeyError):
+                    battle.discard.append(card_json)
             except:
                 return Response(status=404)
 
@@ -117,21 +120,34 @@ class BattleViewSet(viewsets.ModelViewSet):
                     'card': serializer.validated_data['card_name']
                 }
             }
-            card.on_play(self, data)
-            # print(data['battle_state']['enemies'][target-1])
+
+            draw_amount = card.on_play(self, data)
+            draw_cards(battle.hand, battle.deck, battle.discard, draw_amount)
 
             # Update all fields
             battle.curr_health = data['battle_state']['curr_health']
             battle.status_effects = data['battle_state']['status_effects']
 
-            # how does this handle multiple targets?
-            enemy_target = battle.enemy_set.get(field_position__exact = target)
-            if (data['battle_state']['enemies'][target-1]['curr_health'] <= 0):
-                enemy_target.delete()
-            else:
-                enemy_target.curr_health = data['battle_state']['enemies'][target-1]['curr_health']
-                enemy_target.status_effects = data['battle_state']['enemies'][target-1]['status_effects']
-                enemy_target.save()
+            # Card affects all enemies
+            try:
+                all_target = card.tags['all']
+                enemy_target = battle.enemy_set.all()
+                for i in range(len(enemy_target)):
+                    if (data['battle_state']['enemies'][i]['curr_health'] <= 0):
+                        enemy_target[i].delete()
+                    else:
+                        enemy_target[i].curr_health = data['battle_state']['enemies'][i]['curr_health']
+                        enemy_target[i].status_effects = data['battle_state']['enemies'][i]['status_effects']
+                        enemy_target[i].save()
+            # Card affects one enemy
+            except(KeyError):
+                enemy_target = battle.enemy_set.get(field_position__exact = target)
+                if (data['battle_state']['enemies'][target-1]['curr_health'] <= 0):
+                    enemy_target.delete()
+                else:
+                    enemy_target.curr_health = data['battle_state']['enemies'][target-1]['curr_health']
+                    enemy_target.status_effects = data['battle_state']['enemies'][target-1]['status_effects']
+                    enemy_target.save()
             
             # print(battle.enemy_set.all()[1].curr_health)
             battle.save()
@@ -145,8 +161,6 @@ class BattleViewSet(viewsets.ModelViewSet):
         # put all hand into discard
         battle.discard.extend(battle.hand)
         battle.hand.clear()
-
-        #end of turn status_effects
 
         # do all enemy's moves
         for enemy in battle.enemy_set.all():
@@ -162,7 +176,7 @@ class BattleViewSet(viewsets.ModelViewSet):
                     else:
                         battle.block = player_block
             elif(move_type == 'block'):
-                enemy.block = F('block') + enemy.next_move['value']
+                enemy.block = F('block') + enemy.next_move['value'] #Check this
             else:
                 return Response(status = 409)
 

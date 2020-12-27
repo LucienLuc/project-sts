@@ -21,6 +21,13 @@ class Card(ABC):
     def mana(self):
         raise NotImplementedError
 
+    #dict
+    @property
+    @abstractmethod
+    def tags(self):
+        raise NotImplementedError
+    
+    #Let return value be the number of cards to draw after card play
     @abstractmethod
     def on_play(self, data):
         raise NotImplementedError
@@ -67,7 +74,8 @@ class CardEncoder(json.JSONEncoder):
             return {
                 "name": obj.name,
                 "description": obj.description,
-                "mana": obj.mana
+                "mana": obj.mana,
+                "tags": obj.tags
                 }
         except:
             return json.JSONEncoder.default(self, obj)

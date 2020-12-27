@@ -5,6 +5,7 @@ class Shatter(Card):
     name = 'Shatter'
     description = 'Deal 4 damage and inflict 2 Vulnerable'
     mana = 2
+    tags = {}
 
     def on_play(self, data):
         target = data['action']['target']
@@ -20,4 +21,4 @@ class Shatter(Card):
              enemy_json['status_effects'].update({'vulnerable': 2})
 
         data['battle_state']['enemies'][target-1] = enemy_json
-
+        return 0
