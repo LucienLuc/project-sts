@@ -1,5 +1,4 @@
 from ..card import Card
-import json
 
 class Shatter(Card):
     name = 'Shatter'

@@ -83,7 +83,7 @@ class BattleTests(TestCase):
 
         response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
         # print(response_state.data)
-        enemy = json.loads(response_state.data['enemies'][0])
+        enemy = response_state.data['enemies'][0]
         self.assertEqual(enemy['name'], 'Slime')
         self.assertEqual(enemy['curr_health'], 2)
 
@@ -184,9 +184,9 @@ class BattleTests(TestCase):
 
         damage_to_be_taken = 0
         for enemy in response_state.data['enemies']:
-            enemy_obj = json.loads(enemy)
-            if(enemy_obj['next_move']['type'] == 'attack'):
-                damage_to_be_taken += enemy_obj['next_move']['value'] * enemy_obj['next_move']['count']
+            # enemy_obj = json.loads(enemy)
+            if(enemy['next_move']['type'] == 'attack'):
+                damage_to_be_taken += enemy['next_move']['value'] * enemy['next_move']['count']
       
         #end turn
         response3 = self.client.post('/battle/' + str(self.user_id) + '/end_turn/', {'id': self.user_id}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
@@ -214,7 +214,7 @@ class BattleTests(TestCase):
         self.assertEqual(response3.status_code, 200)
 
         response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
-        enemy = json.loads(response_state.data['enemies'][0])
+        enemy = response_state.data['enemies'][0]
         self.assertEqual(enemy['status_effects'].get('vulnerable'),2)
     
     def test_vulnerable_damage(self):
@@ -242,8 +242,7 @@ class BattleTests(TestCase):
         self.assertEqual(response3.status_code, 200)
 
         response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
-        # print(response_state.data)
-        enemy = json.loads(response_state.data['enemies'][0])
+        enemy = response_state.data['enemies'][0]
         self.assertEqual(enemy['curr_health'], enemy['max_health'] - 13)
     
     def test_bleed_damage(self):
@@ -260,13 +259,13 @@ class BattleTests(TestCase):
         self.assertEqual(response1.status_code, 200)
 
         response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
-        enemy = json.loads(response_state.data['enemies'][0])
+        enemy = response_state.data['enemies'][0]
         self.assertEqual(enemy['status_effects'].get('bleed'),2)
 
         response3 = self.client.post('/battle/' + str(self.user_id) + '/end_turn/', {'id': self.user_id}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
         
         response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
-        enemy = json.loads(response_state.data['enemies'][0])
+        enemy = response_state.data['enemies'][0]
         self.assertEqual(enemy['status_effects'].get('bleed'), 1)
         self.assertEqual(enemy['curr_health'], enemy['max_health'] - 4 - 2)
     
@@ -286,5 +285,4 @@ class BattleTests(TestCase):
         response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
         # print(response_state.data)
         for enemy in response_state.data['enemies']:
-            enemy_json = json.loads(enemy)
-            self.assertEqual(enemy_json['status_effects'].get('fear'), 2)
+            self.assertEqual(enemy['status_effects'].get('fear'), 2)

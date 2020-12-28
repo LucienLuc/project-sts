@@ -1,6 +1,4 @@
 from ..card import Card
-from src.enemy.enemy import EnemyEncoder
-import json
 
 class Fear(Card):
     name = 'Fear'
@@ -9,9 +7,6 @@ class Fear(Card):
     tags = {'all': 1}
     
     def on_play(self, data):
-        #Do damage to target
-        # target = data['action']['target']
-        # enemy_json = json.loads(data['battle_state']['enemies'][target-1])
         enemy = data['enemies'].get(field_position__exact = data['target'])
         for enemy in data['enemies']:
             try:

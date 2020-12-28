@@ -1,6 +1,4 @@
 from ..card import Card
-from src.enemy.enemy import EnemyEncoder
-import json
 
 class Strike(Card):
     name = 'Strike'

@@ -95,7 +95,7 @@ class BattleViewSet(viewsets.ModelViewSet):
                     battle.discard.append(card_json)
             except:
                 return Response(status=404)
-                
+
             # Prepare data to send to card on_play() method
             enemies = battle.enemy_set.all()
 
@@ -246,9 +246,7 @@ class BattleViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def get_state(self, request, pk):
         battle = self.get_object()
-        enemy_list = []
-        for enemy in battle.enemy_set.all():
-            enemy_list.append(json.dumps(enemy, cls=EnemyEncoder))
+        enemies = list(battle.enemy_set.all().order_by('field_position').values())
         data = {
                 'curr_health': battle.curr_health,
                 'max_health': battle.max_health,
@@ -259,7 +257,7 @@ class BattleViewSet(viewsets.ModelViewSet):
                 'deck': battle.deck,
                 'hand': battle.hand,
                 'discard': battle.discard,
-                'enemies': enemy_list
+                'enemies': enemies
         }
         return Response(data = data, status=200)
 
