@@ -21,7 +21,11 @@ class Card(ABC):
     def mana(self):
         raise NotImplementedError
 
-    #dict
+    # dict
+    # Define tags as a key: value pair where key is the name of the tag
+    # Available tags:
+    # all - card affects all enemies
+    # exhaust - card does not get put into discard pile after play
     @property
     @abstractmethod
     def tags(self):
@@ -68,6 +72,7 @@ class Card(ABC):
         except(KeyError):
             pass
         return int(base + fortify_value * fragile_multiplier)
+
 class CardEncoder(json.JSONEncoder):
     def default(self, obj):
         try:
