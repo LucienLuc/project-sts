@@ -95,61 +95,22 @@ class BattleViewSet(viewsets.ModelViewSet):
                     battle.discard.append(card_json)
             except:
                 return Response(status=404)
-
+                
             # Prepare data to send to card on_play() method
             enemies = battle.enemy_set.all()
-            enemy_list = []
-            for enemy in battle.enemy_set.all():
-                enemy_list.append(json.dumps(enemy, cls=EnemyEncoder))
 
             data = {
-                'battle_state' : {
-                    'curr_health': battle.curr_health,
-                    'max_health': battle.max_health,
-                    'curr_mana': battle.curr_mana,
-                    'max_mana': battle.max_mana,
-                    'block': battle.block,
-                    'status_effects': battle.status_effects,
-                    'deck': battle.deck,
-                    'hand': battle.hand,
-                    'discard': battle.discard,
-                    'enemies': enemy_list
-                },
-                'action' : {
-                    'target': serializer.validated_data['target'],
-                    'card': serializer.validated_data['card_name']
-                }
+                'battle': battle,
+                'enemies': enemies,
+                'target': serializer.validated_data['target'],
+                'card': serializer.validated_data['card_name']
             }
 
             draw_amount = card.on_play(self, data)
             draw_cards(battle.hand, battle.deck, battle.discard, draw_amount)
-
-            # Update all fields
-            battle.curr_health = data['battle_state']['curr_health']
-            battle.status_effects = data['battle_state']['status_effects']
-
-            # Card affects all enemies
-            try:
-                all_target = card.tags['all']
-                enemy_target = battle.enemy_set.all()
-                for i in range(len(enemy_target)):
-                    if (data['battle_state']['enemies'][i]['curr_health'] <= 0):
-                        enemy_target[i].delete()
-                    else:
-                        enemy_target[i].curr_health = data['battle_state']['enemies'][i]['curr_health']
-                        enemy_target[i].status_effects = data['battle_state']['enemies'][i]['status_effects']
-                        enemy_target[i].save()
-            # Card affects one enemy
-            except(KeyError):
-                enemy_target = battle.enemy_set.get(field_position__exact = target)
-                if (data['battle_state']['enemies'][target-1]['curr_health'] <= 0):
-                    enemy_target.delete()
-                else:
-                    enemy_target.curr_health = data['battle_state']['enemies'][target-1]['curr_health']
-                    enemy_target.status_effects = data['battle_state']['enemies'][target-1]['status_effects']
-                    enemy_target.save()
-            
-            # print(battle.enemy_set.all()[1].curr_health)
+            delete_enemies = enemies.filter(curr_health__lte = 0)
+            for enemy in delete_enemies:
+                enemy.delete()
             battle.save()
             return Response(status=200)
         return Response(status=400)

@@ -266,7 +266,6 @@ class BattleTests(TestCase):
         response3 = self.client.post('/battle/' + str(self.user_id) + '/end_turn/', {'id': self.user_id}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
         
         response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
-
         enemy = json.loads(response_state.data['enemies'][0])
         self.assertEqual(enemy['status_effects'].get('bleed'), 1)
         self.assertEqual(enemy['curr_health'], enemy['max_health'] - 4 - 2)

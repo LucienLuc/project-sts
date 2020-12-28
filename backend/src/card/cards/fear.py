@@ -12,12 +12,12 @@ class Fear(Card):
         #Do damage to target
         # target = data['action']['target']
         # enemy_json = json.loads(data['battle_state']['enemies'][target-1])
-        for i in range(len(data['battle_state']['enemies'])):
-            enemy_json = json.loads(data['battle_state']['enemies'][i])
+        enemy = data['enemies'].get(field_position__exact = data['target'])
+        for enemy in data['enemies']:
             try:
-                fear_value = enemy_json['status_effects']['fear']
-                enemy_json['status_effects'].update({'fear': fear_value + 2})
+                fear_value = enemy.status_effects['fear']
+                enemy.status_effects.update({'fear': fear_value + 2})
             except(KeyError):
-                enemy_json['status_effects'].update({'fear': 2})
-            data['battle_state']['enemies'][i] = enemy_json
+                enemy.status_effects.update({'fear': 2})
+            enemy.save()
         return 0

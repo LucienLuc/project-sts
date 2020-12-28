@@ -16,7 +16,7 @@ class Battle(models.Model):
     hand = models.JSONField(default = list)
     discard = models.JSONField(default = list)
     deck = models.JSONField(default = list)
-
+    relics = models.JSONField(default = list)
     #id is same as game.id
     def __str__(self):
         return str(self.id)

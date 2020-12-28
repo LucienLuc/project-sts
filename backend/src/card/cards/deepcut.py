@@ -8,17 +8,13 @@ class DeepCut(Card):
     tags = {}
     
     def on_play(self, data):
-        target = data['action']['target']
-        enemy_json = json.loads(data['battle_state']['enemies'][target-1])
-
-        new_attack = Card.attack_modifier(self, 4, data['battle_state']['status_effects'], data['battle_state']['status_effects'])
-        enemy_json['curr_health'] = enemy_json['curr_health'] - new_attack
-        
+        enemy = data['enemies'].get(field_position__exact = data['target'])
+        new_attack = Card.attack_modifier(self, 4, data['battle'].status_effects, enemy.status_effects)
+        enemy.curr_health -= new_attack
         try:
-            value = enemy_json['status_effects']['bleed']
-            enemy_json['status_effects'].update({'bleed': value + 2})
+            value = enemy.status_effects['bleed']
+            enemy.status_effects.update({'bleed': value + 2})
         except(KeyError):
-             enemy_json['status_effects'].update({'bleed': 2})
-
-        data['battle_state']['enemies'][target-1] = enemy_json
+             enemy.status_effects.update({'bleed': 2})
+        enemy.save()
         return 0

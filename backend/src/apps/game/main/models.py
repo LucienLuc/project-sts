@@ -22,8 +22,7 @@ class Game(models.Model):
     gold = models.IntegerField()
     # array of card
     deck = models.JSONField(default = list)
-    #array of relic
-    relic = []
+    relic = models.JSONField(default = dict)
 
     # game.id is always == user.id
     def __str__(self):

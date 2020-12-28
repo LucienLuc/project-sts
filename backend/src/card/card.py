@@ -24,7 +24,6 @@ class Card(ABC):
     # dict
     # Define tags as a key: value pair where key is the name of the tag
     # Available tags:
-    # all - card affects all enemies
     # exhaust - card does not get put into discard pile after play
     @property
     @abstractmethod

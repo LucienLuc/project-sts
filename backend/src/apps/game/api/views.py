@@ -23,7 +23,7 @@ from django.shortcuts import get_object_or_404
 
 from src.card.cards import *
 from src.card.card import Card, CardEncoder
-
+# from src.relic.relic import 
 import json
 
 class GameViewSet(viewsets.ModelViewSet):
@@ -60,6 +60,34 @@ class GameViewSet(viewsets.ModelViewSet):
             return Response(status=404)
         game.save()
         return Response(status=200)    
+
+    @action(detail=True, methods=['post'])
+    def add_relic(self, request, pk):
+        try:
+            card_name = request.data['card_name'].replace(' ', '')
+            card_module = globals()[card_name.lower()]
+            card = getattr(card_module, card_name)
+        except:
+            return Response(status=404)
+        game = self.get_object()
+        card_json = json.dumps(card, cls = CardEncoder)
+        game.deck.append(card_json)
+        game.save()
+        return Response(status=200)
+
+    @action(detail=True, methods=['post'])
+    def remove_relic(self, request, pk):
+        try:
+            card_name = request.data['card_name'].replace(' ', '')
+            card_module = globals()[card_name.lower()]
+            card = getattr(card_module, card_name)
+        except:
+            return Response(status=404)
+        game = self.get_object()
+        card_json = json.dumps(card, cls = CardEncoder)
+        game.deck.append(card_json)
+        game.save()
+        return Response(status=200)
 
     @action(detail=True, methods=['get'])
     def get_deck(self, request, pk):
