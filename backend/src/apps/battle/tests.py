@@ -184,7 +184,6 @@ class BattleTests(TestCase):
 
         damage_to_be_taken = 0
         for enemy in response_state.data['enemies']:
-            # enemy_obj = json.loads(enemy)
             if(enemy['next_move']['type'] == 'attack'):
                 damage_to_be_taken += enemy['next_move']['value'] * enemy['next_move']['count']
       
@@ -198,6 +197,35 @@ class BattleTests(TestCase):
 
         self.assertEqual(response_state.data['max_health']-damage_to_be_taken, response_state.data['curr_health'])
     
+    def test_block_damage(self):
+        response1 = self.client.post('/game/' + str(self.user_id) + '/add_card_to_deck/', {'card_name': 'Block'}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        self.assertEqual(response1.status_code, 200)
+
+        response2 = self.client.post('/battle/', {'id': self.user_id}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        self.assertEqual(response2.status_code, 201)
+
+        response3 = self.client.post('/battle/' + str(self.user_id) + '/play_card/', {'id': self.user_id, 'card_name': 'Block', 'target': 1}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        self.assertEqual(response3.status_code, 200)
+
+        response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        # print(response_state.data)
+        damage_to_be_taken = 0
+        for enemy in response_state.data['enemies']:
+            if(enemy['next_move']['type'] == 'attack'):
+                damage_to_be_taken += enemy['next_move']['value'] * enemy['next_move']['count']
+        
+        response4 = self.client.post('/battle/' + str(self.user_id) + '/end_turn/', {'id': self.user_id}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        self.assertEqual(response4.status_code, 200)
+
+        response_state = self.client.get('/battle/' + str(self.user_id) + '/get_state/', HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))
+        # print(response_state.data)
+
+        if damage_to_be_taken < 6:
+            self.assertEqual(response_state.data['block'], 6 - damage_to_be_taken)
+            self.assertEqual(response_state.data['curr_health'], response_state.data['max_health'])
+        else:
+            self.assertEqual(response_state.data['curr_health'], 6 + response_state.data['max_health']-damage_to_be_taken)
+
     def test_inflict_vulnerable(self):
         #Add cards to deck 
         response1 = self.client.post('/game/' + str(self.user_id) + '/add_card_to_deck/', {'card_name': 'Shatter'}, HTTP_AUTHORIZATION = 'JWT {}'.format(self.token))

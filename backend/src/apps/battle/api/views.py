@@ -23,6 +23,7 @@ from src.card.card import Card, CardEncoder
 from src.enemy.enemy import Enemy as ClassEnemy
 from src.enemy.enemy import EnemyEncoder
 from src.enemy.enemies import *
+from src.relic.relic import start_of_battle_relics
 from src.enemy.move import MoveEncoder
 
 from django.shortcuts import get_object_or_404
@@ -123,6 +124,12 @@ class BattleViewSet(viewsets.ModelViewSet):
         battle.discard.extend(battle.hand)
         battle.hand.clear()
 
+        try:
+            platedarmor_value = battle.status_effects['plated armor']
+            battle.block += platedarmor_value
+        except(KeyError):
+            pass
+
         # do all enemy's moves
         for enemy in battle.enemy_set.all():
             move_type = enemy.next_move['type']
@@ -134,6 +141,14 @@ class BattleViewSet(viewsets.ModelViewSet):
                     if (player_block < 0):
                         battle.curr_health = battle.curr_health + player_block
                         battle.block = 0
+                        try:
+                            platedarmor_value = battle.status_effects['plated armor']
+                            if platedarmor_value == 1:
+                                battle.status_effects.pop('plated armor')
+                            else:
+                                battle.status_effects['plated armor'] -= 1
+                        except(KeyError):
+                            pass
                     else:
                         battle.block = player_block
             elif(move_type == 'block'):
@@ -234,8 +249,11 @@ class BattleViewSet(viewsets.ModelViewSet):
                 battle.status_effects['weak'] = value - 1
         except(KeyError):
             pass
-
-        battle.currmana = battle.max_mana
+        try:
+            battle.relics['Battery']
+            battle.curr_mana += battle.max_mana
+        except(KeyError):
+            battle.curr_mana = battle.max_mana
 
         # get next hand
         draw_cards(battle.hand, battle.deck, battle.discard, 5)
@@ -273,6 +291,7 @@ class BattleViewSet(viewsets.ModelViewSet):
                 block = 0,
                 game = game,
                 deck = game.deck, # does this make a copy or reference same thing?
+                relics = game.relics,
                 id = game.id
             )
             random.shuffle(battle.deck)
@@ -306,6 +325,14 @@ class BattleViewSet(viewsets.ModelViewSet):
             # battle.hand = hand
             # battle.deck = deck
             # battle.discard = discard
+
+            enemies = battle.enemy_set.all()
+
+            data = {
+                'battle': battle,
+                'enemies': enemies,
+            }
+            start_of_battle_relics(data)
             battle.save()
             return Response(status=201)
         return Response(status=404)

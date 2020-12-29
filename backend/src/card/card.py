@@ -2,6 +2,31 @@ import abc
 from abc import ABC, abstractmethod
 import json
 
+#arr
+COMMON_CARD_POOL = ['strike']
+
+
+
+UNCOMMON_CARD_POOL = ['fear']
+    
+
+
+RARE_CARD_POOL = ['deep cut']
+    
+
+
+SHOP_CARD_POOL = []
+    
+
+
+BOSS_CARD_POOL = []
+
+CARD_POOL = []
+CARD_POOL.append(COMMON_CARD_POOL)
+CARD_POOL.append(UNCOMMON_CARD_POOL)
+CARD_POOL.append(RARE_CARD_POOL)
+CARD_POOL.append(BOSS_CARD_POOL)
+
 class Card(ABC):
     #str
     @property

@@ -4,7 +4,7 @@ class Fear(Card):
     name = 'Fear'
     description = 'Give all enemies 2 Weak'
     mana = 1
-    tags = {'all': 1}
+    tags = {}
     
     def on_play(self, data):
         enemy = data['enemies'].get(field_position__exact = data['target'])
