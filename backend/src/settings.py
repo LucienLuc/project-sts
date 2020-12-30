@@ -57,7 +57,8 @@ INSTALLED_APPS = [
     'src.apps.enemy',
     'src.apps.battle',
     'src.apps.shop',
-    'src.apps.map'
+    'src.apps.map',
+    'src.apps.reward',
 ]
 
 # AUTH_USER_MODEL = 'myauth.User'

@@ -3,7 +3,9 @@ from django.db import models
 from .models import Map
 
 class MapSerializer(serializers.ModelSerializer):
-    number = serializers.IntegerField(max_value = None, min_value = None)
     class Meta:
         model = Map
         fields = '__all__'
+
+class MoveSerializer(serializers.Serializer):
+    next_position = serializers.IntegerField()

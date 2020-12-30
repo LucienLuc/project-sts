@@ -13,7 +13,7 @@ class Game(models.Model):
         ('shop', 'shop'),
         ('event', 'event'),
         ('map', 'map'),
-        ('rewards','rewards')
+        ('reward','reward')
     )
     gamestate = models.CharField(max_length = 7, choices = GAMESTATE)
     curr_health = models.IntegerField()

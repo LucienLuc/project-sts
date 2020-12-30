@@ -24,6 +24,7 @@ urlpatterns = [
     path('enemy/', include('src.apps.enemy.api.urls')),
     path('shop/', include('src.apps.shop.api.urls')),
     path('map/', include('src.apps.map.api.urls')),
+    path('reward/', include('src.apps.reward.api.urls')),
     path('battle/', include('src.apps.battle.api.urls'))
 
 ]
