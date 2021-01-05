@@ -8,8 +8,10 @@ import 'antd/dist/antd.css';
 import axios from 'axios'
 import {Button} from 'antd'
 
-//const BASE_URL = 'https://project-sts-backend.herokuapp.com'
-const BASE_URL = 'http://127.0.0.1:8000'
+import Home from './views/Home'
+import Navbar from './views/Navbar'
+
+import Battle from './views/Battle'
 
 function App(props) {
 
@@ -25,13 +27,12 @@ function App(props) {
   return (
     <div className="App">
       <header className="App-header">
+        <Navbar/>
       </header>
-      <p>
-        Hello World!
-      </p>
-      <Button onClick = {handleClick}>
-        Test
-      </Button>
+      <Switch>
+        <Route exact path = "/" component = {Home}/>
+        <Route exact path = "/battle" component = {Battle}/>
+      </Switch>
     </div>
   );
 }

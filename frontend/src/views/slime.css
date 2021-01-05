@@ -1,0 +1,15 @@
+.slime {
+    width: 128px;
+    height: 128px;
+    background: url('../assets/Slime.png') left center;
+    animation: playSlime 1s steps(2) infinite;
+}
+
+@keyframes playSlime {
+    from {
+        background-position: left;
+    }
+    to {
+        background-position: right;
+    }
+ }

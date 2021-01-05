@@ -1,0 +1,16 @@
+.rat {
+    width: 128px;
+    height: 128px;
+    background-image: url('../assets/Rat.png');
+
+    animation: playRat 1.7s steps(5) infinite;
+}
+
+@keyframes playRat {
+    from {
+        background-position: top;
+    }
+    to {
+        background-position: bottom;
+    }
+ }
